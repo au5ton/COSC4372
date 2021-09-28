@@ -7,7 +7,7 @@
     "build": "npm run build:rust && npm run build:next",
     "build:next": "next build",
     "build:rust": "wasm-pack build wasm/ --out-dir ../pkg",
-    "ci": "amazon-linux-extras install rust1 && cargo install wasm-pack && npm run build",
+    "ci": "amazon-linux-extras install rust1 && cargo install wasm-pack && export PATH=$PATH:$HOME/.cargo/bin npm run build",
     "start": "next start",
     "lint": "next lint"
   },
