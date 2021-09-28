@@ -1,8 +1,18 @@
+import { useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 
+
 export default function Home() {
+
+  useEffect(() => {
+    (async () => {
+      const { add_two_ints, greet } = await import('../pkg/wasm_bg');
+      console.log('2 + 2 = ? ... ', add_two_ints(2,2));
+    })();
+  }, [])
+
   return (
     <div className={styles.container}>
       <Head>
