@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Head from 'next/head'
 import Image from 'next/image'
+
 import styles from '../styles/Home.module.css'
 
 
@@ -10,6 +11,10 @@ export default function Home() {
     (async () => {
       const { add_two_ints, greet } = await import('../pkg/wasm_bg');
       console.log('2 + 2 = ? ... ', add_two_ints(2,2));
+
+      //const foo = await import('https://docs.opencv.org/4.5.3/opencv.js');
+
+      //console.log(cv.getBuildInformation());
     })();
   }, [])
 

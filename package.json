@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build-rust && next build",
-    "build-rust": "wasm-pack build wasm/ --out-dir ../pkg",
+    "build": "npm run build:rust && npm run build:next",
+    "build:next": "next build",
+    "build:rust": "wasm-pack build wasm/ --out-dir ../pkg",
+    "ci": "amazon-linux-extras install rust1 && cargo install wasm-pack && npm run build",
     "start": "next start",
     "lint": "next lint"
   },
