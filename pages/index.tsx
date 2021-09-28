@@ -82,7 +82,7 @@ export default function Home() {
       <main className={styles.main}>
         <p>Hello</p>
         <h3>Input</h3>
-        <input type="file" accept="image/*" onChange={handleChange} />
+        <input type="file" accept="image/*" onChange={handleChange} /> <br />
         <canvas className={styles.canvas} ref={inputCanvasRef} width="512" height="512"></canvas>
         <h3>Output</h3>
         <button onClick={handleClick}>Generate</button> <br />
