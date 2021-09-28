@@ -1,22 +1,75 @@
-import { useEffect } from 'react'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
-import Image from 'next/image'
+//import dynamic from 'next/dynamic'
+//const photon = dynamic(() => import('@silvia-odwyer/photon'))
+//import * as photon from '@silvia-odwyer/photon'
+//import * as wasm from '@silvia-odwyer/photon/photon_rs_bg.wasm'
+//import * as photon from '@silvia-odwyer/photon/photon_rs_bg.wasm'
+//const photon = async import('@silvia-odwyer/photon');
+
+
+import { readFileAsDataURL } from '../lib/AsyncFileReader'
+import { usePhoton } from '../lib/usePhoton'
 
 import styles from '../styles/Home.module.css'
 
-
 export default function Home() {
+  const [file, setFile] = useState<File | null>(null)
+  const inputCanvasRef = useRef<HTMLCanvasElement>(null);
+  const outputCanvasRef = useRef<HTMLCanvasElement>(null);
+  const photon = usePhoton()
 
+  /**
+   * Once an image file is dropped onto the page
+   */
   useEffect(() => {
     (async () => {
-      const { add_two_ints, greet } = await import('../pkg/wasm_bg');
-      console.log('2 + 2 = ? ... ', add_two_ints(2,2));
-
-      //const foo = await import('https://docs.opencv.org/4.5.3/opencv.js');
-
-      //console.log(cv.getBuildInformation());
+      if(file && inputCanvasRef.current) {
+        // Use a reference to the canvas below and get a 2D context from the canvas
+        const context = inputCanvasRef.current.getContext('2d')
+        // Use a wrapper of the FileReader API to get the contents of the file
+        const contents = await readFileAsDataURL(file)
+        if(typeof contents === 'string') {
+          /**
+           * After the file has been read, we need to create a build-in Image()
+           * reference to it so we can draw it to the <canvas> element.
+           */
+          const img = new Image();
+          img.src = contents;
+          img.onload = function() {
+            context?.drawImage(img, 0, 0);
+            console.log('the image is drawn')
+            // Go ahead and process the image automatically
+            handleClick()
+          }
+        }
+      }
     })();
-  }, [])
+  }, [file])
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if(e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0])
+    }
+  }
+
+  const handleClick = async () => {
+    // Do some safety checks and get a 2D context for the input and output <canvas>es
+    if(inputCanvasRef.current && outputCanvasRef.current && photon) {
+      const inContext = inputCanvasRef.current.getContext('2d')
+      const outContext = outputCanvasRef.current.getContext('2d')
+      if(inContext && outContext) {
+        // Convert the ImageData found in the canvas to a PhotonImage (so that it can communicate with the core Rust library)
+        const image = photon.open_image(inputCanvasRef.current, inContext);
+
+        // Filter the image, the PhotonImage's raw pixels are modified
+        photon.filter(image, 'radio');
+
+        // Place the modified image back on the canvas
+        photon.putImageData(outputCanvasRef.current, outContext, image);
+      }
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -27,58 +80,14 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <p>Hello</p>
+        <h3>Input</h3>
+        <input type="file" accept="image/*" onChange={handleChange} />
+        <canvas className={styles.canvas} ref={inputCanvasRef} width="512" height="512"></canvas>
+        <h3>Output</h3>
+        <button onClick={handleClick}>Generate</button> <br />
+        <canvas className={styles.canvas} ref={outputCanvasRef} width="512" height="512"></canvas>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
   )
 }

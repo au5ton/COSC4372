@@ -10,7 +10,10 @@ module.exports = withTM({
     //config.output.webassemblyModuleFilename = 'wasm-build/.wasm'
 
     // Since Webpack 5 doesn't enable WebAssembly by default, we should do it manually
-    config.experiments = { asyncWebAssembly: true }
+    // config.experiments = {
+    //   asyncWebAssembly: true,
+    //   syncWebAssembly: true,
+    // }
 
     return config
   },
