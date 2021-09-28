@@ -1,13 +1,5 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
-//import dynamic from 'next/dynamic'
-//const photon = dynamic(() => import('@silvia-odwyer/photon'))
-//import * as photon from '@silvia-odwyer/photon'
-//import * as wasm from '@silvia-odwyer/photon/photon_rs_bg.wasm'
-//import * as photon from '@silvia-odwyer/photon/photon_rs_bg.wasm'
-//const photon = async import('@silvia-odwyer/photon');
-
-
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
 import { usePhoton } from '../lib/usePhoton'
 
@@ -25,8 +17,6 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       if(file && inputCanvasRef.current) {
-        // Use a reference to the canvas below and get a 2D context from the canvas
-        const context = inputCanvasRef.current.getContext('2d')
         // Use a wrapper of the FileReader API to get the contents of the file
         const contents = await readFileAsDataURL(file)
         if(typeof contents === 'string') {
@@ -37,10 +27,39 @@ export default function Home() {
           const img = new Image();
           img.src = contents;
           img.onload = function() {
-            context?.drawImage(img, 0, 0);
-            console.log('the image is drawn')
-            // Go ahead and process the image automatically
-            handleClick()
+            if(inputCanvasRef.current && outputCanvasRef.current) {
+              // Name some shortcuts
+              const icanvas = inputCanvasRef.current
+              const ocanvas = outputCanvasRef.current
+
+              // Resize <canvas> to fit the original resolution of the image
+              // We also account for the screens with a high pixel density (high-end laptops and smartphones)
+              // Scale the canvas by window.devicePixelRatio
+              icanvas.width = img.naturalWidth * window.devicePixelRatio
+              icanvas.height = img.naturalHeight * window.devicePixelRatio
+              ocanvas.width = img.naturalWidth * window.devicePixelRatio
+              ocanvas.height = img.naturalHeight * window.devicePixelRatio
+
+              // use css to bring it back to regular size
+              // (this is also capped with max-width: 100% in the stylesheet)
+              icanvas.style.width = `${img.naturalWidth}px`
+              icanvas.style.height = `${img.naturalHeight}px`
+              ocanvas.style.width = `${img.naturalWidth}px`
+              ocanvas.style.height = `${img.naturalHeight}px`
+
+              
+              // Use a reference to the canvas below and get a 2D context from the canvas
+              const context = icanvas.getContext('2d')
+              // set the scale of the context
+              context?.scale(window.devicePixelRatio, window.devicePixelRatio)
+
+              // Draw the unmodified image to the input <canvas> 
+              context?.drawImage(img, 0, 0);
+              console.log('the image is drawn')
+              // Go ahead and process the image automatically
+              handleClick()
+            }
+            
           }
         }
       }
@@ -60,13 +79,15 @@ export default function Home() {
       const outContext = outputCanvasRef.current.getContext('2d')
       if(inContext && outContext) {
         // Convert the ImageData found in the canvas to a PhotonImage (so that it can communicate with the core Rust library)
-        const image = photon.open_image(inputCanvasRef.current, inContext);
+        const image = photon.open_image(inputCanvasRef.current, inContext)
 
         // Filter the image, the PhotonImage's raw pixels are modified
-        photon.filter(image, 'radio');
+        // (This is where we modify the image however we desire)
+        //photon.filter(image, 'radio')
+        photon.grayscale(image)
 
         // Place the modified image back on the canvas
-        photon.putImageData(outputCanvasRef.current, outContext, image);
+        photon.putImageData(outputCanvasRef.current, outContext, image)
       }
     }
   }

@@ -1,4 +1,8 @@
 
 .canvas {
   border: 1px solid #444;
+  /* Make sure the image can fit on screen */
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
 }
