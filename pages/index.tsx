@@ -146,8 +146,6 @@ export default function Home() {
     if (img) {
     canvas.width = img.width;
     canvas.height = img.height;
-    console.log(img.width);
-    console.log(img.height);
       if (context) {
         context.drawImage(img, 0, 0);
         return context.getImageData(0, 0, img.width, img.height);
@@ -206,11 +204,9 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <div className={styles.row}>
           <div className={styles.input}>
             <h3>Input</h3>
             <input type="file" accept="image/*" onChange={handleChange} />
-            <br />
             <canvas id="original" className={styles.canvas} ref={inputCanvasRef} width="300" height="300"></canvas>
           </div>
 
@@ -220,14 +216,11 @@ export default function Home() {
               <img id="gs__image"></img>
             </canvas>
           </div>
-        </div>
 
-        <div className={styles.row}>
           <div className={styles.histogram}>
             <h3>Histogram</h3>
             <canvas id="canvasHistogram" className={styles.canvas} width="256" height="150"></canvas>
           </div>
-        </div>
       </main>
     </div>
   )
