@@ -1,3 +1,36 @@
+.main,
+.output,
+.input,
+.histogram {
+  display: grid;
+}
+
+.main {
+  grid-template:
+    'in out'
+    '. histo';
+  column-gap: 10px;
+  width: max-content;
+}
+
+.output {
+  grid-area: out;
+  height: 100%;
+}
+.output canvas {
+  align-self: end;
+}
+
+.input { 
+  grid-area: in;
+}
+
+
+.histogram {
+  grid-area: histo;
+  justify-self: end;
+}
+
 
 .canvas {
   border: 1px solid #444;
