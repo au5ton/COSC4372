@@ -1,3 +1,10 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  gap: 40px;
+}
+
 
 .canvas {
   border: 1px solid #444;
@@ -5,4 +12,22 @@
   max-width: 100%;
   max-height: 100vh;
   object-fit: contain;
+}
+
+.row {
+  gap: 40px;
+  justify-content: flex-end;
+}
+
+.row, .input, .output {
+  display: flex;
+}
+
+.histogram h3 {
+  margin-top: 0;
+}
+
+.input, .output {
+  flex-direction: column;
+  justify-content: space-between;
 }
