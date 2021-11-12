@@ -78,6 +78,7 @@ export default function Home() {
   }
 
   // generates histogram
+  // reference: https://codepen.io/aNNiMON/pen/OqjGVP
   function processImage(inImg: any) {
     const src = new Uint32Array(inImg.data.buffer);
 
@@ -145,6 +146,8 @@ export default function Home() {
     if (img) {
     canvas.width = img.width;
     canvas.height = img.height;
+    console.log(img.width);
+    console.log(img.height);
       if (context) {
         context.drawImage(img, 0, 0);
         return context.getImageData(0, 0, img.width, img.height);
@@ -156,6 +159,10 @@ export default function Home() {
     if(e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
     }
+  }
+
+  const updateHistogram = () => {
+    processImage(getImageData());
   }
 
   // used to be handleClick; renamed for clarity
@@ -183,7 +190,7 @@ export default function Home() {
 
         if (output) {
           output.src = newImg.src;
-          processImage(getImageData());
+          output.onload = updateHistogram;
         }
       }
     }
