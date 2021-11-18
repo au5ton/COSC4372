@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
 import { usePhoton } from '../lib/usePhoton'
+import * as d3 from "d3"
 
 import styles from '../styles/Home.module.css'
 
@@ -96,6 +97,7 @@ export default function Home() {
       histR[r]++;
       histG[g]++;
       histB[b]++;
+
     }
     
     let maxBrightness = 0;
@@ -219,7 +221,7 @@ export default function Home() {
 
           <div className={styles.histogram}>
             <h3>Histogram</h3>
-            <canvas id="canvasHistogram" className={styles.canvas} width="256" height="150"></canvas>
+            <canvas id="canvasHistogram" className={styles.canvas} width="430" height="220"></canvas>
           </div>
       </main>
     </div>
