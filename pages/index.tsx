@@ -2,7 +2,8 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
 import { usePhoton } from '../lib/usePhoton'
-import Slider from 'react-input-slider';
+import { Range } from 'rc-slider';
+import 'rc-slider/assets/index.css';
 
 import styles from '../styles/Home.module.css'
 
@@ -198,11 +199,6 @@ export default function Home() {
     }
   }
 
-const adjustThreshold = (x: any) => {
-  setThreshold({ ...threshold, one: x });
-}
-
-
   return (
     <div className={styles.container}>
       <Head>
@@ -232,57 +228,23 @@ const adjustThreshold = (x: any) => {
               className={styles.canvas}
               width="430" height="220" />
               
-              <div id="thres1" className="threshold">
-                <Slider
-                axis="x" x={threshold.one}
-                xmin={1} xmax={255}
-                styles={{
-                  track: { backgroundColor: 'transparent' },
-                  active: { backgroundColor: 'transparent' },
-                  thumb: {
-                    width: 1,
-                    height: 100,
-                    backgroundColor: 'red'
-                  }
-                }}
-                onChange={ ({ x }) => setThreshold({ ...threshold, one: x }) } />
-                
-                <Slider
-                axis="x" x={threshold.one}
-                xmin={1} xmax={255}
-                styles={{
-                  track: { backgroundColor: 'transparent' },
-                  active: { backgroundColor: 'transparent' },
-                  thumb: { backgroundColor: 'rgb(232, 230, 227)'}
-                }}
-                onChange={ ({ x }) => setThreshold({ ...threshold, one: x }) } />
+              <div className="threshold">
+                <Range
+                className="redline"
+                min={1}
+                max={255}
+                defaultValue={[threshold.one, threshold.two]}
+                value={[threshold.one, threshold.two]}
+                onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
+                 />
+                <Range
+                min={1}
+                max={255}
+                defaultValue={[threshold.one, threshold.two]}
+                value={[threshold.one, threshold.two]}
+                onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
+                 />
               </div>
-
-              <div id="thres1" className="threshold">
-                <Slider
-                axis="x" x={threshold.two}
-                xmin={1} xmax={255}
-                styles={{
-                  track: { backgroundColor: 'transparent' },
-                  active: { backgroundColor: 'transparent' },
-                  thumb: {
-                    width: 1,
-                    backgroundColor: 'red'
-                  }
-                }}
-                onChange={ ({ x }) => setThreshold({ ...threshold, two: x }) } />
-                  
-                <Slider
-                axis="x" x={threshold.two}
-                xmin={1} xmax={255}
-                styles={{
-                  track: { backgroundColor: 'transparent' },
-                  active: { backgroundColor: 'transparent' },
-                  thumb: { backgroundColor: 'rgb(232, 230, 227)'}
-                }}
-                onChange={ ({ x }) => setThreshold({ ...threshold, two: x }) } />
-              </div>
-
             </div>
           </div>
       </main>

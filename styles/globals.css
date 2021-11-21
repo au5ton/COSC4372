@@ -34,7 +34,7 @@ a {
     width: 100%;
   }
 
-  .threshold > div {
+  /*.threshold > div {
     width: calc(100% - 1px) !important;
   }
 
@@ -50,4 +50,19 @@ a {
     justify-content: center;
     align-items: center;
     width: max-content;
+  }*/
+
+  .rc-slider {
+    height: 100% !important;
+  }
+
+  .rc-slider-rail, .rc-slider-track {
+    background-color: transparent !important;
+  }
+
+  .redline .rc-slider-handle {
+    background-color: red;
+    height: 100%;
+    width: 1px;
+    border: none;
   }
