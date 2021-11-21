@@ -253,6 +253,7 @@ const adjustThreshold = (x: any) => {
                 styles={{
                   track: { backgroundColor: 'transparent' },
                   active: { backgroundColor: 'transparent' },
+                  thumb: { backgroundColor: 'rgb(232, 230, 227)'}
                 }}
                 onChange={ ({ x }) => setThreshold({ ...threshold, one: x }) } />
               </div>
@@ -277,6 +278,7 @@ const adjustThreshold = (x: any) => {
                 styles={{
                   track: { backgroundColor: 'transparent' },
                   active: { backgroundColor: 'transparent' },
+                  thumb: { backgroundColor: 'rgb(232, 230, 227)'}
                 }}
                 onChange={ ({ x }) => setThreshold({ ...threshold, two: x }) } />
               </div>
