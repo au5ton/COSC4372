@@ -68,10 +68,22 @@ a {
     box-shadow: none !important;
   }
 
-  #set-threshold {
+  .graphData {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .graphData button {
     height: max-content;
     width: max-content;
     padding: 5px;
     justify-self: center;
     align-self: center;
+  }
+
+  .graphData label {
+    font-weight: bold;
   }

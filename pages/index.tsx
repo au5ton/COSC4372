@@ -277,14 +277,19 @@ export default function Home() {
                 </div>
               </div>
 
-              <button id="set-threshold"
-              onClick={generateImageThreshold}>Set Threshold</button>
-            </div>
+              <div className="graphData">
+                <span className="thresholdLv">
+                  <label>Threshold lv1:</label> { threshold.one }
+                </span>
+                <span className="thresholdLv">
+                  <label>Threshold lv2:</label> { threshold.two }
+                </span>
+                <button id="thresholdSubmit"
+                onClick={generateImageThreshold}>Set Threshold</button>
+                </div>
+              </div>
 
             </div>
-            <div id="thresholdCanvas">
-            <canvas id="thresh__canvas" ref={thresholdCanvas}></canvas>
-          </div>
       </main>
     </div>
   )
