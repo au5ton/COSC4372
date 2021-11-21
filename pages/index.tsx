@@ -279,10 +279,10 @@ export default function Home() {
 
               <div className="graphData">
                 <span className="thresholdLv">
-                  <label>Threshold lv1:</label> { threshold.one }
+                  <label>Threshold 1:</label> { threshold.one }
                 </span>
                 <span className="thresholdLv">
-                  <label>Threshold lv2:</label> { threshold.two }
+                  <label>Threshold 2:</label> { threshold.two }
                 </span>
                 <button id="thresholdSubmit"
                 onClick={generateImageThreshold}>Set Threshold</button>
