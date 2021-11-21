@@ -21,3 +21,32 @@ a {
 * {
   box-sizing: border-box;
 }
+
+#histogram .canvasArea {
+  position: relative;
+}
+
+  .threshold {
+    position: absolute;
+    top: 1px;
+    height: 100%;
+    width: 100%;
+  }
+
+  .threshold > div {
+    width: calc(100% - 1px) !important;
+  }
+
+  .threshold > div:first-child,
+  .threshold > div:first-child div {
+    height: 100% !important;
+  }
+
+  .slider {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: max-content;
+  }

@@ -13,7 +13,8 @@
     "d3": "^7.1.1",
     "next": "^10.0.0",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "react-input-slider": "^6.0.1"
   },
   "devDependencies": {
     "@types/d3": "^7.1.0",

@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
 import { usePhoton } from '../lib/usePhoton'
-import * as d3 from "d3"
+import Slider from 'react-input-slider';
 
 import styles from '../styles/Home.module.css'
 
@@ -11,6 +11,8 @@ export default function Home() {
   const inputCanvasRef = useRef<HTMLCanvasElement>(null);
   const outputCanvasRef = useRef<HTMLCanvasElement>(null);
   const photon = usePhoton();
+
+  const [threshold, setThreshold] = useState({one: 1, two: 255});
 
   /**
    * Once an image file is dropped onto the page
@@ -196,6 +198,10 @@ export default function Home() {
     }
   }
 
+const adjustThreshold = (x: any) => {
+  setThreshold({ ...threshold, one: x });
+}
+
 
   return (
     <div className={styles.container}>
@@ -219,9 +225,63 @@ export default function Home() {
             </canvas>
           </div>
 
-          <div className={styles.histogram}>
+          <div id="histogram" className={styles.histogram}>
             <h3>Histogram</h3>
-            <canvas id="canvasHistogram" className={styles.canvas} width="430" height="220"></canvas>
+            <div className="canvasArea">
+              <canvas id="canvasHistogram"
+              className={styles.canvas}
+              width="430" height="220" />
+              
+              <div id="thres1" className="threshold">
+                <Slider
+                axis="x" x={threshold.one}
+                xmin={1} xmax={255}
+                styles={{
+                  track: { backgroundColor: 'transparent' },
+                  active: { backgroundColor: 'transparent' },
+                  thumb: {
+                    width: 1,
+                    height: 100,
+                    backgroundColor: 'red'
+                  }
+                }}
+                onChange={ ({ x }) => setThreshold({ ...threshold, one: x }) } />
+                
+                <Slider
+                axis="x" x={threshold.one}
+                xmin={1} xmax={255}
+                styles={{
+                  track: { backgroundColor: 'transparent' },
+                  active: { backgroundColor: 'transparent' },
+                }}
+                onChange={ ({ x }) => setThreshold({ ...threshold, one: x }) } />
+              </div>
+
+              <div id="thres1" className="threshold">
+                <Slider
+                axis="x" x={threshold.two}
+                xmin={1} xmax={255}
+                styles={{
+                  track: { backgroundColor: 'transparent' },
+                  active: { backgroundColor: 'transparent' },
+                  thumb: {
+                    width: 1,
+                    backgroundColor: 'red'
+                  }
+                }}
+                onChange={ ({ x }) => setThreshold({ ...threshold, two: x }) } />
+                  
+                <Slider
+                axis="x" x={threshold.two}
+                xmin={1} xmax={255}
+                styles={{
+                  track: { backgroundColor: 'transparent' },
+                  active: { backgroundColor: 'transparent' },
+                }}
+                onChange={ ({ x }) => setThreshold({ ...threshold, two: x }) } />
+              </div>
+
+            </div>
           </div>
       </main>
     </div>

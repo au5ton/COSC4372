@@ -8,7 +8,7 @@
 .main {
   grid-template:
     'in out'
-    '. histo';
+    'histo histo';
   column-gap: 10px;
   width: max-content;
 }
@@ -30,7 +30,6 @@
   grid-area: histo;
   justify-self: end;
 }
-
 
 .canvas {
   border: 1px solid #444;
