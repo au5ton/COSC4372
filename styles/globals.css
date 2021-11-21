@@ -9,6 +9,15 @@ body {
   height: 100%;
   }
 
+  #__next {
+    width: 100%;
+  }
+
+  #__next > div {
+    display: flex;
+    justify-content: center;
+  }
+
 body {
   display: flex;
   justify-content: center;
@@ -25,35 +34,22 @@ a {
 
 #histogram .canvasArea {
   position: relative;
+  max-width: max-content;
 }
 
   .threshold {
     position: absolute;
     top: 1px;
     height: 100%;
-    width: 100%;
+    width: calc(100% - 1px);
   }
-
-  /*.threshold > div {
-    width: calc(100% - 1px) !important;
-  }
-
-  .threshold > div:first-child,
-  .threshold > div:first-child div {
-    height: 100% !important;
-  }
-
-  .slider {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: max-content;
-  }*/
 
   .rc-slider {
     height: 100% !important;
+  }
+
+  .rc-slider.thumbs {
+    height: max-content !important;
   }
 
   .rc-slider-rail, .rc-slider-track {
@@ -65,4 +61,17 @@ a {
     height: 100%;
     width: 1px;
     border: none;
+  }
+
+  .rc-slider-handle:active {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #set-threshold {
+    height: max-content;
+    width: max-content;
+    padding: 5px;
+    justify-self: center;
+    align-self: center;
   }

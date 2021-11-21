@@ -11,6 +11,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const inputCanvasRef = useRef<HTMLCanvasElement>(null);
   const outputCanvasRef = useRef<HTMLCanvasElement>(null);
+  const thresholdCanvas = useRef<HTMLCanvasElement>(null);
   const photon = usePhoton();
 
   const [threshold, setThreshold] = useState({one: 1, two: 255});
@@ -199,6 +200,28 @@ export default function Home() {
     }
   }
 
+  const generateImageThreshold = (e: any) => {
+    let img = document.getElementById("gs__image") as HTMLImageElement;
+    if (outputCanvasRef.current) {
+      let ctx = outputCanvasRef.current.getContext("2d");
+
+      var w = img.width,
+          h = img.height;
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, w, h);
+        var d = ctx.getImageData(0, 0, w, h);
+
+        for (var i=0; i<d.data.length; i+=4) { // 4 is for RGBA channels
+          // R=G=B=R>T?255:0
+          d.data[i] = d.data[i+1] = d.data[i+2] = d.data[i+1] > threshold.two ? 255 : 0;
+        }
+      
+        ctx.putImageData(d, 0, 0);
+      }
+    }
+
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -208,9 +231,14 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
+          <input className={styles.inputBtn}
+          type="file"
+          accept="image/*"
+          onChange={handleChange} />
+
           <div className={styles.input}>
             <h3>Input</h3>
-            <input type="file" accept="image/*" onChange={handleChange} />
+            
             <canvas id="original" className={styles.canvas} ref={inputCanvasRef} width="300" height="300"></canvas>
           </div>
 
@@ -223,29 +251,39 @@ export default function Home() {
 
           <div id="histogram" className={styles.histogram}>
             <h3>Histogram</h3>
-            <div className="canvasArea">
-              <canvas id="canvasHistogram"
-              className={styles.canvas}
-              width="430" height="220" />
-              
-              <div className="threshold">
-                <Range
-                className="redline"
-                min={1}
-                max={255}
-                defaultValue={[threshold.one, threshold.two]}
-                value={[threshold.one, threshold.two]}
-                onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
-                 />
-                <Range
-                min={1}
-                max={255}
-                defaultValue={[threshold.one, threshold.two]}
-                value={[threshold.one, threshold.two]}
-                onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
-                 />
+            <div className={styles.content}>
+              <div className="canvasArea">
+                <canvas id="canvasHistogram"
+                className={styles.canvas}
+                width="430" height="220" />
+                
+                <div className="threshold">
+                  <Range
+                  className="redline"
+                  min={1}
+                  max={255}
+                  defaultValue={[threshold.one, threshold.two]}
+                  value={[threshold.one, threshold.two]}
+                  onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
+                  />
+                  <Range
+                  className="thumbs"
+                  min={1}
+                  max={255}
+                  defaultValue={[threshold.one, threshold.two]}
+                  value={[threshold.one, threshold.two]}
+                  onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
+                  />
+                </div>
               </div>
+
+              <button id="set-threshold"
+              onClick={generateImageThreshold}>Set Threshold</button>
             </div>
+
+            </div>
+            <div id="thresholdCanvas">
+            <canvas id="thresh__canvas" ref={thresholdCanvas}></canvas>
           </div>
       </main>
     </div>

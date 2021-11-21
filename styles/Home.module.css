@@ -7,29 +7,36 @@
 
 .main {
   grid-template:
+    'btn btn'
     'in out'
     'histo histo';
   column-gap: 10px;
-  width: max-content;
-}
-
-.output {
-  grid-area: out;
-  height: 100%;
-}
-.output canvas {
-  align-self: end;
+  min-width: 650px;
+  width: 50%;
+  padding: 20px 0px;
 }
 
 .input { 
   grid-area: in;
 }
 
+.inputBtn {
+  grid-area: btn;
+}
+
+.output {
+  grid-area: out;
+}
 
 .histogram {
   grid-area: histo;
-  justify-self: end;
 }
+
+.histogram .content {
+  display: grid;
+  grid-template: 'graph btn';
+}
+
 
 .canvas {
   border: 1px solid #444;
