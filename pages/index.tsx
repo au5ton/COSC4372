@@ -213,7 +213,7 @@ export default function Home() {
 
         for (var i=0; i<d.data.length; i+=4) { // 4 is for RGBA channels
           // R=G=B=R>T?255:0
-          d.data[i] = d.data[i+1] = d.data[i+2] = d.data[i+1] > threshold.two ? 255 : 0;
+          d.data[i] = d.data[i+1] = d.data[i+2] = d.data[i+1] > threshold.one && d.data[i+1] < threshold.two ? 255 : 0;
         }
       
         ctx.putImageData(d, 0, 0);
