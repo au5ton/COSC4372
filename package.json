@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@silvia-odwyer/photon": "^0.3.11",
+    "@techstark/opencv-js": "^4.5.4-release.1",
     "d3": "^7.1.1",
     "next": "^10.0.0",
     "rc-slider": "^9.7.4",

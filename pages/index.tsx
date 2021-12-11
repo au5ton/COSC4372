@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
 import { usePhoton } from '../lib/usePhoton'
+import cv from '@techstark/opencv-js'
 import { Range } from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
@@ -177,15 +178,19 @@ export default function Home() {
       const outContext = outputCanvasRef.current.getContext('2d');
       if(inContext && outContext) {
         // Convert the ImageData found in the canvas to a PhotonImage (so that it can communicate with the core Rust library)
-        const image = photon.open_image(inputCanvasRef.current, inContext);
+        //const image = photon.open_image(inputCanvasRef.current, inContext);
+        const image = cv.imread(inputCanvasRef.current)
 
         // Filter the image, the PhotonImage's raw pixels are modified
         // (This is where we modify the image however we desire)
         //photon.filter(image, 'radio')
-        photon.grayscale(image);
+        //photon.grayscale(image);
+        const imgGray = new cv.Mat();
+        cv.cvtColor(image, imgGray, cv.COLOR_BGR2GRAY);
         
         // Place the modified image back on the canvas
-        photon.putImageData(outputCanvasRef.current, outContext, image);
+        //photon.putImageData(outputCanvasRef.current, outContext, image);
+        cv.imshow(outputCanvasRef.current, imgGray);
 
         convertCanvasToImg();
         let newImg = convertCanvasToImg();
