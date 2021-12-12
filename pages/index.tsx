@@ -1,13 +1,13 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
-import cv from '@techstark/opencv-js'
-import { Range } from 'rc-slider';
+import { Range } from 'rc-slider'
 import * as CanvasIO from '../lib/canvasIO'
-import { ApplyGrayscaleFilter, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing';
+import { ApplyGrayscaleFilter, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
 import { LoaderRings } from '../components/SvgComponents'
 
-import 'rc-slider/assets/index.css';
+import 'rc-slider/assets/index.css'
 import styles from '../styles/Home.module.css'
+
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +24,7 @@ export default function Home() {
   const [shouldProcessThreshold, setShouldProcessThreshold] = useState(false);
   
 
-  const runFilters = async () => {
+  const runFilters = () => {
     if(inputCanvasRef.current && outputCanvasRef.current && histogramCanvasRef.current) {
       // restore original image into output canvas
       CanvasIO.copyCanvasDataToAnotherCanvas(inputCanvasRef.current, outputCanvasRef.current);
@@ -39,9 +39,7 @@ export default function Home() {
     }
   }
 
-  /**
-   * Once an image file is dropped onto the page
-   */
+  // Once an image file is dropped onto the page
   useEffect(() => {
     (async () => {
       if(file && inputCanvasRef.current && outputCanvasRef.current) {
@@ -52,11 +50,25 @@ export default function Home() {
         await CanvasIO.loadImageFileIntoCanvas(file, outputCanvasRef.current);
         
         console.log('new image loaded into canvases');
-        await runFilters();
+        runFilters()
         setLoading(false);
       }
     })();
-  }, [file, shouldProcessGrayscale, shouldProcessThreshold, threshold])
+  }, [file])
+
+  // Used once a filter option is changed
+  useEffect(() => {
+    (async () => {
+      if(file && inputCanvasRef.current && outputCanvasRef.current) {
+        setLoading(true);
+        runFilters()
+        console.log('filters done')
+        setLoading(false);
+      }
+    })();
+  }, [shouldProcessGrayscale, shouldProcessThreshold, threshold])
+
+  
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if(e.target.files && e.target.files.length > 0) {

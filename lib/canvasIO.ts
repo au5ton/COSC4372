@@ -46,8 +46,10 @@ export function loadImageFileIntoCanvas(file: File, canvas: HTMLCanvasElement): 
  */
 export function getImageDataFromCanvas(canvas: HTMLCanvasElement): ImageData | null {
   const context = canvas.getContext('2d');
-  const width = canvas.width/window.devicePixelRatio;
-  const height = canvas.height/window.devicePixelRatio;
+  const { width, height } = canvas;
+  // const width = canvas.width/window.devicePixelRatio;
+  // const height = canvas.height/window.devicePixelRatio;
+  // context?.scale(window.devicePixelRatio, window.devicePixelRatio);
 
   if(context) {
     return context.getImageData(0, 0, width, height);
@@ -64,12 +66,13 @@ export function getImageDataFromCanvas(canvas: HTMLCanvasElement): ImageData | n
  */
 export function writeImageDataIntoCanvas(data: ImageData, canvas: HTMLCanvasElement): void {
   const context = canvas.getContext('2d');
+  context?.scale(window.devicePixelRatio, window.devicePixelRatio);
   if(context) {
     if(data instanceof ImageData) {
       context.putImageData(data, 0, 0);
     }
     else {
-      console.log('ANTICIPATED DISCLAIMER')
+      //console.log('ANTICIPATED DISCLAIMER')
       const temp = context.createImageData((data as any).width, (data as any).height);
       for(let i = 0; i < temp.data.length; i++) {
         temp.data[i] = (data as any).data[i];

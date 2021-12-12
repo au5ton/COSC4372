@@ -78,6 +78,7 @@ export function ApplyThreshold(canvas: HTMLCanvasElement, threshold: { one: numb
       // R=G=B=R>T?255:0
       d.data[i] = d.data[i+1] = d.data[i+2] = threshold.one < d.data[i+1] && d.data[i+1] < threshold.two ? 255 : 0;
     }
-    context.putImageData(d, 0, 0);
+    //context.putImageData(d, 0, 0);
+    CanvasIO.writeImageDataIntoCanvas(d, canvas);
   }
 }
