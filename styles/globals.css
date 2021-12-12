@@ -28,59 +28,60 @@ a {
 * {
   box-sizing: border-box;
 }
+*/
 
 #histogram .canvasArea {
   position: relative;
   max-width: max-content;
 }
 
-  .threshold {
-    position: absolute;
-    top: 1px;
-    height: 100%;
-    width: calc(100% - 1px);
-  }
+.threshold {
+  position: absolute;
+  top: 1px;
+  height: 100%;
+  width: calc(100% - 1px);
+}
 
-  .rc-slider {
-    height: 100% !important;
-  }
+.rc-slider {
+  height: 100% !important;
+}
 
-  .rc-slider.thumbs {
-    height: max-content !important;
-  }
+.rc-slider.thumbs {
+  height: max-content !important;
+}
 
-  .rc-slider-rail, .rc-slider-track {
-    background-color: transparent !important;
-  }
+.rc-slider-rail, .rc-slider-track {
+  background-color: transparent !important;
+}
 
-  .redline .rc-slider-handle {
-    background-color: red;
-    height: 100%;
-    width: 1px;
-    border: none;
-  }
+.redline .rc-slider-handle {
+  background-color: red;
+  height: 100%;
+  width: 1px;
+  border: none;
+}
 
-  .rc-slider-handle:active {
-    border: none !important;
-    box-shadow: none !important;
-  }
+.rc-slider-handle:active {
+  border: none !important;
+  box-shadow: none !important;
+}
 
-  .graphData {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 20px;
-  }
+.graphData {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+}
 
-  .graphData button {
-    height: max-content;
-    width: max-content;
-    padding: 5px;
-    justify-self: center;
-    align-self: center;
-  }
+.graphData button {
+  height: max-content;
+  width: max-content;
+  padding: 5px;
+  justify-self: center;
+  align-self: center;
+}
 
-  .graphData label {
-    font-weight: bold;
-  } */
+.graphData label {
+  font-weight: bold;
+}

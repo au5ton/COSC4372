@@ -1,5 +1,4 @@
 import { readFileAsDataURL } from '../lib/AsyncFileReader'
-import type { CanvasWorkerRequest, CanvasWorkerResponse } from './canvasWorker'
 
 export function loadImageFileIntoCanvas(file: File, canvas: HTMLCanvasElement): Promise<void> {
   return new Promise((resolve, reject) => {
