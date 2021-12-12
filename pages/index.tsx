@@ -1,79 +1,98 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
-import { readFileAsDataURL } from '../lib/AsyncFileReader'
-import { usePhoton } from '../lib/usePhoton'
 import cv from '@techstark/opencv-js'
 import { Range } from 'rc-slider';
-import 'rc-slider/assets/index.css';
+import * as CanvasIO from '../lib/canvasIO'
+import type { CanvasWorkerOperation, CanvasWorkerRequest } from '../lib/canvasWorker'
+import { WorkerDaemon } from '../lib/WorkerDaemon';
+import { usePhoton } from '../lib/usePhoton'
+import { LoaderRings } from '../components/SvgComponents'
 
+import 'rc-slider/assets/index.css';
 import styles from '../styles/Home.module.css'
+
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const inputCanvasRef = useRef<HTMLCanvasElement>(null);
   const outputCanvasRef = useRef<HTMLCanvasElement>(null);
   const thresholdCanvas = useRef<HTMLCanvasElement>(null);
+  const workerRef = useRef<WorkerDaemon>(new WorkerDaemon());
+  const worker = workerRef.current;
   const photon = usePhoton();
 
   const [threshold, setThreshold] = useState({one: 1, two: 255});
+
+  useEffect(() => {
+    (async () => {
+      console.log('calling LoadOpenCV')
+      await worker.LoadOpenCV();
+      console.log('finished LoadOpenCV')
+    })();
+  }, [])
+
+  const runFilters = async () => {
+    console.log('processing grayscale')
+    // if(workerRef.current === undefined) {
+    //   workerRef.current = new Worker(new URL('../lib/canvasWorker.ts', import.meta.url))
+    //   //workerRef.current = new Worker('/worker.js');
+    // }
+    // const worker = workerRef.current
+    // worker.onmessage = (event) => {
+    //   console.log('message!', event)
+    //   if(event.data.msg === 'load') {
+    //     worker.postMessage({ msg: 'imageProcessing' });
+    //   }
+    // };
+    // const req: CanvasWorkerRequest = { operation: 'LoadOpenCV', imageData: null as any };
+    // worker.postMessage(req);
+    //worker.postMessage({ msg: 'load' });
+
+
+    
+    if(outputCanvasRef.current) {
+      //const sourceData = CanvasIO.getImageDataFromCanvas(outputCanvasRef.current)!;
+      const sourceData = cv.imread(outputCanvasRef.current)
+      cv.
+      console.log('sourceData?',sourceData)
+      // Have the worker do our request for us
+      const res = await worker.ConvertToGrayscale(CanvasIO.toImageData(sourceData));
+      console.log('outputData?',res)
+
+      // Apply the response to the canvas
+      if(res.status === 'success') {
+        CanvasIO.writeImageDataIntoCanvas(res.payload, outputCanvasRef.current);
+      }
+    }
+    console.log('finished grayscale')
+  }
 
   /**
    * Once an image file is dropped onto the page
    */
   useEffect(() => {
     (async () => {
-      if(file && inputCanvasRef.current) {
-        // Use a wrapper of the FileReader API to get the contents of the file
-        const contents = await readFileAsDataURL(file);
+      if(file && inputCanvasRef.current && outputCanvasRef.current) {
+        setLoading(true);
 
-        if(typeof contents === 'string') {
-          /**
-           * After the file has been read, we need to create a build-in Image()
-           * reference to it so we can draw it to the <canvas> element.
-           */
-          const img = new Image();
-          img.src = contents;
-          img.onload = function() {
-            if(inputCanvasRef.current && outputCanvasRef.current) {
-              // Name some shortcuts
-              const icanvas = inputCanvasRef.current;
-              const ocanvas = outputCanvasRef.current;
-
-              // Resize <canvas> to fit the original resolution of the image
-              // We also account for the screens with a high pixel density (high-end laptops and smartphones)
-              // Scale the canvas by window.devicePixelRatio
-              icanvas.width = img.naturalWidth * window.devicePixelRatio;
-              icanvas.height = img.naturalHeight * window.devicePixelRatio;
-              ocanvas.width = img.naturalWidth * window.devicePixelRatio;
-              ocanvas.height = img.naturalHeight * window.devicePixelRatio;
-
-              // use css to bring it back to regular size
-              // (this is also capped with max-width: 100% in the stylesheet)
-              icanvas.style.width = `${img.naturalWidth}px`;
-              icanvas.style.height = `${img.naturalHeight}px`;
-              ocanvas.style.width = `${img.naturalWidth}px`;
-              ocanvas.style.height = `${img.naturalHeight}px`;
-
-              
-              // Use a reference to the canvas below and get a 2D context from the canvas
-              const context = icanvas.getContext('2d');
-              // set the scale of the context
-              context?.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-              // Draw the unmodified image to the input <canvas> 
-              context?.drawImage(img, 0, 0);
-              console.log('the image is drawn');
-              // Go ahead and process the image automatically
-              
-              convertToGrayscale();
-            }
-            
-          }
-        }
+        // Load image into canvases
+        await CanvasIO.loadImageFileIntoCanvas(file, inputCanvasRef.current);
+        await CanvasIO.loadImageFileIntoCanvas(file, outputCanvasRef.current);
+        //CanvasIO.copyCanvasDataToAnotherCanvas(inputCanvasRef.current, outputCanvasRef.current);
+        
+        console.log('new image loaded into canvases');
+        await runFilters();
+        //convertToGrayscale()
+        //console.log('filters done!')
       }
     })();
   }, [file])
 
+  /**
+   * Once some aspect of the filter settings have been changed.
+   */
+  //useEffect()
 
   // converts canvas to data url for use in processing image
   const convertCanvasToImg = () => {
@@ -85,7 +104,7 @@ export default function Home() {
 
   // generates histogram
   // reference: https://codepen.io/aNNiMON/pen/OqjGVP
-  function processImage(inImg: any) {
+  function processImage(inImg: ImageData) {
     const src = new Uint32Array(inImg.data.buffer);
 
     let histBrightness = (new Array(256)).fill(0);
@@ -167,7 +186,7 @@ export default function Home() {
   }
 
   const updateHistogram = () => {
-    processImage(getImageData());
+    processImage(getImageData()!);
   }
 
   // used to be handleClick; renamed for clarity
@@ -180,6 +199,7 @@ export default function Home() {
         // Convert the ImageData found in the canvas to a PhotonImage (so that it can communicate with the core Rust library)
         //const image = photon.open_image(inputCanvasRef.current, inContext);
         const image = cv.imread(inputCanvasRef.current)
+        //const image = cv.matFromImageData(CanvasIO.getImageDataFromCanvas(inputCanvasRef.current!)!)
 
         // Filter the image, the PhotonImage's raw pixels are modified
         // (This is where we modify the image however we desire)
@@ -191,6 +211,8 @@ export default function Home() {
         // Place the modified image back on the canvas
         //photon.putImageData(outputCanvasRef.current, outContext, image);
         cv.imshow(outputCanvasRef.current, imgGray);
+        //cv.
+        //CanvasIO.writeImageDataIntoCanvas(cv.toImageData(imgGray), outputCanvasRef.current!)
 
         convertCanvasToImg();
         let newImg = convertCanvasToImg();
@@ -228,73 +250,122 @@ export default function Home() {
   }
 
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
         <title>Create Next App</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-          <input className={styles.inputBtn}
-          type="file"
-          accept="image/*"
-          onChange={handleChange} />
+      <main>
+        <div className="container-lg">
+          <button className="btn btn-primary" onClick={runFilters}>Test</button>
+          <div className="d-flex flex-column flex-sm-row g-2">
+            {/* Source image */}
+            <div className="col-6 float-left">
+              <div className="Box Box">
+                <div className="Box-header d-flex flex-items-center">
+                  <h3 className="Box-title overflow-hidden flex-auto">
+                    Source image
+                  </h3>
+                  <label style={{ height: 30 }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleChange}
+                      hidden
+                    />
+                    <span className="btn btn-primary btn-sm">
+                      Select file
+                    </span>
+                  </label>
+                </div>
+                <div className="Box-body d-flex flex-justify-center">
+                  <canvas id="original" className={styles.canvas} ref={inputCanvasRef} width="300" height="300"></canvas>
+                </div>
+              </div>
+            </div>
 
-          <div className={styles.input}>
-            <h3>Input</h3>
-            
-            <canvas id="original" className={styles.canvas} ref={inputCanvasRef} width="300" height="300"></canvas>
+            {/* Output image */}
+            <div className="col-6 float-left">
+              <div className="Box Box">
+                <div className="Box-header d-flex flex-items-center">
+                  <h3 className="Box-title overflow-hidden flex-auto">
+                    Output image
+                  </h3>
+                  {
+                    loading ?
+                    <>
+                      <span>Processing...</span>
+                      <LoaderRings height={30} width={30} />
+                    </> :
+                    <span className="btn btn-primary btn-sm" style={{ height: 30, visibility: 'hidden' }}>Select file</span>
+                  }
+                </div>
+                <div className="Box-body d-flex flex-justify-center">
+                  <canvas id="gs__canvas" className={styles.canvas} ref={outputCanvasRef} width="300" height="300"></canvas>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className={styles.output}>
-            <h3>Output</h3>
-            <canvas id="gs__canvas" className={styles.canvas} ref={outputCanvasRef} width="300" height="300">
-              <img id="gs__image"></img>
-            </canvas>
+        <div className="Box Box">
+          <div className="Box-header d-flex flex-items-center">
+            <h3 className="Box-title overflow-hidden flex-auto">
+              Box title
+            </h3>
+            <label>
+              <input type="checkbox" checked={true} />
+              Apply Effect
+            </label>
           </div>
+          <div className="Box-body">
+            Box body
+          </div>
+        </div>
 
-          <div id="histogram" className={styles.histogram}>
-            <h3>Histogram</h3>
-            <div className={styles.content}>
-              <div className="canvasArea">
-                <canvas id="canvasHistogram"
-                className={styles.canvas}
-                width="430" height="220" />
-                
-                <div className="threshold">
-                  <Range
+        <div id="histogram" className={styles.histogram}>
+          <h3>Histogram</h3>
+          <div className={styles.content}>
+            <div className="canvasArea">
+              <canvas id="canvasHistogram"
+              className={styles.canvas}
+              width="430" height="220" />
+              
+              <div className="threshold">
+                <Range
                   className="redline"
                   min={1}
                   max={255}
                   defaultValue={[threshold.one, threshold.two]}
                   value={[threshold.one, threshold.two]}
                   onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
-                  />
-                  <Range
+                />
+                <Range
                   className="thumbs"
                   min={1}
                   max={255}
                   defaultValue={[threshold.one, threshold.two]}
                   value={[threshold.one, threshold.two]}
                   onChange={(value) => setThreshold({ one: value[0], two: value[1] })}
-                  />
-                </div>
+                />
               </div>
-
-              <div className="graphData">
-                <span className="thresholdLv">
-                  <label>Threshold 1:</label> { threshold.one }
-                </span>
-                <span className="thresholdLv">
-                  <label>Threshold 2:</label> { threshold.two }
-                </span>
-                <button id="thresholdSubmit"
-                onClick={generateImageThreshold}>Set Threshold</button>
-                </div>
-              </div>
-
             </div>
+
+            <div className="graphData">
+              <span className="thresholdLv">
+                <label>Threshold 1:</label> { threshold.one }
+              </span>
+              <span className="thresholdLv">
+                <label>Threshold 2:</label> { threshold.two }
+              </span>
+              <button className="btn" id="thresholdSubmit"
+              onClick={generateImageThreshold}>Set Threshold</button>
+              </div>
+            </div>
+
+          </div>
       </main>
     </div>
   )
