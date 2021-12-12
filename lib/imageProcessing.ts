@@ -1,5 +1,7 @@
 import cv from '@techstark/opencv-js'
+import { reshape } from 'mathjs'
 import * as CanvasIO from '../lib/canvasIO'
+import kmeans from './kmeans'
 
 export function ApplyGrayscaleFilter(canvas: HTMLCanvasElement) {
   const image = cv.imread(canvas)
@@ -81,4 +83,51 @@ export function ApplyThreshold(canvas: HTMLCanvasElement, threshold: { one: numb
     //context.putImageData(d, 0, 0);
     CanvasIO.writeImageDataIntoCanvas(d, canvas);
   }
+}
+
+export function ApplySegmentation(canvas: HTMLCanvasElement, k: number) {
+  // Read in the image
+  let image = cv.imread(canvas)
+  //console.log('before',image.data)
+
+  // Change color to RGB (from RGBA, the canvas default)
+  cv.cvtColor(image, image, cv.COLOR_RGBA2RGB)
+  //console.log('after',image.data)
+  
+  // Reshaping the image into a 2D array of pixels and 3 color values (RGB)
+  //const pixel_vals = image.reshape(-1, 3); // Not implemented
+  //const pixel_vals = CanvasIO.getImageDataFromCanvas(canvas)
+  const pixel_vals = reshape(Array.from(image.data as Uint8Array).map(e => Number(e)), [-1,3])
+
+  // the below line of code defines the criteria for the algorithm to stop running,
+  // which will happen is 100 iterations are run or the epsilon (which is the required accuracy)
+  // becomes 85%
+  //criteria = (cv.TermCriteria_EPS + cv.TermCriteria_MAX_ITER, 100, 0.85)
+  const criteria = new cv.TermCriteria(cv.TermCriteria_EPS + cv.TermCriteria_MAX_ITER, 100, 0.85)
+
+  //cv.matFromArray()
+
+  //const x = cv.kmeans(new cv.Mat(image.rows, image.cols, image.type, pixel_vals), k, new cv.Mat(), criteria, 10, 0)
+  // calculate kmeans
+  console.time('computing k-means');
+  const { centroids, labels2 } = kmeans(pixel_vals, k)
+
+  // Use labels to compute ImageData
+  const imageData: ImageData = {
+    data: new Uint8ClampedArray((labels2 as number[])
+    .map(c => ([
+      Math.round(centroids[c][0]),
+      Math.round(centroids[c][1]),
+      Math.round(centroids[c][2]),
+      255
+    ]))
+    .flat()),
+    width: image.rows,
+    height: image.cols
+  };
+
+  console.timeEnd('computing k-means');
+
+  // Write ImageData back to canvas
+  CanvasIO.writeImageDataIntoCanvas(imageData, canvas);
 }

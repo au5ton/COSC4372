@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { Range } from 'rc-slider'
 import * as CanvasIO from '../lib/canvasIO'
-import { ApplyGrayscaleFilter, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
+import { ApplyGrayscaleFilter, ApplySegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
 import { LoaderRings } from '../components/SvgComponents'
 
 import 'rc-slider/assets/index.css'
@@ -19,9 +19,12 @@ export default function Home() {
   const [threshold, setThreshold] = useState({one: 1, two: 255});
 
   // Processing
-  const optionsDisabled = file === null
+  const [optionsDisabled, setOptionsDisabled] = useState(true)
   const [shouldProcessGrayscale, setShouldProcessGrayscale] = useState(true);
   const [shouldProcessThreshold, setShouldProcessThreshold] = useState(false);
+  const [shouldProcessKMeans, setShouldProcessKMeans] = useState(false);
+  const [k, setK] = useState<number>(3);
+  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(true);
   
 
   const runFilters = () => {
@@ -36,6 +39,12 @@ export default function Home() {
       // Apply filters
       if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
       if(shouldProcessThreshold) ApplyThreshold(output, threshold);
+      try {
+        if(shouldProcessKMeans) ApplySegmentation(output, k);
+      }
+      catch(err) {
+        console.error(err);
+      }
     }
   }
 
@@ -52,21 +61,26 @@ export default function Home() {
         console.log('new image loaded into canvases');
         runFilters()
         setLoading(false);
+        setOptionsDisabled(false)
       }
     })();
   }, [file])
 
+  const handleManualUpdate = () => {
+    if(file && inputCanvasRef.current && outputCanvasRef.current) {
+      setLoading(true);
+      runFilters()
+      console.log('filters done')
+      setLoading(false);
+    }
+  }
+
   // Used once a filter option is changed
   useEffect(() => {
-    (async () => {
-      if(file && inputCanvasRef.current && outputCanvasRef.current) {
-        setLoading(true);
-        runFilters()
-        console.log('filters done')
-        setLoading(false);
-      }
-    })();
-  }, [shouldProcessGrayscale, shouldProcessThreshold, threshold])
+    if(shouldAutoUpdate) {
+      handleManualUpdate();
+    }
+  }, [shouldProcessGrayscale, shouldProcessThreshold, threshold, shouldProcessKMeans, k, shouldAutoUpdate])
 
   
 
@@ -140,7 +154,14 @@ export default function Home() {
         <div className="container-lg py-2">
           <div className="Box">
             <div className="Box-header">
-              <strong>Processing options</strong>
+              <div className="d-flex g-5">
+                <strong>Processing options</strong>
+                <label>
+                  <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldAutoUpdate} onChange={(e) => setShouldAutoUpdate(e.target.checked)} />
+                  Should Auto-Update?
+                </label>
+                <button className="btn btn-primary btn-sm" type="button" disabled={shouldAutoUpdate} onClick={handleManualUpdate}>Update output image</button>
+              </div>
             </div>
             <ul>
               <li className="Box-row">
@@ -195,7 +216,16 @@ export default function Home() {
                 </div>
               </li>
               <li className="Box-row">
-                Box row three
+               <div className="d-flex g-5">
+                <label>
+                  <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
+                  Segmentation with K-means Clustering
+                </label>
+                <label>
+                  K = 
+                  <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                </label>
+               </div>
               </li>
               <li className="Box-row">
                 Box row four
