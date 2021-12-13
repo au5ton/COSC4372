@@ -98,12 +98,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <div className="container-lg">
+      <main className="px-2">
+        <div className="container-sm">
           {/* <button className="btn btn-primary" onClick={runFilters}>Test</button> */}
           <div className="d-flex flex-column flex-sm-row g-2">
             {/* Source image */}
-            <div className="col-6 float-left">
+            <div className="col-12 col-sm-6 float-left">
               <div className="Box Box">
                 <div className="Box-header d-flex flex-items-center">
                   <h3 className="Box-title overflow-hidden flex-auto">
@@ -128,7 +128,7 @@ export default function Home() {
             </div>
 
             {/* Output image */}
-            <div className="col-6 float-left">
+            <div className="col-12 col-sm-6 float-left">
               <div className="Box Box">
                 <div className="Box-header d-flex flex-items-center">
                   <h3 className="Box-title overflow-hidden flex-auto">
@@ -151,7 +151,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container-lg py-2">
+        <div className="container-sm py-2">
           <div className="Box">
             <div className="Box-header">
               <div className="d-flex g-5">
@@ -227,13 +227,13 @@ export default function Home() {
                 </label>
                </div>
               </li>
-              <li className="Box-row">
+              {/* <li className="Box-row">
                 Box row four
-              </li>
+              </li> */}
             </ul>
-            <div className="Box-footer">
+            {/* <div className="Box-footer">
               Box footer
-            </div>
+            </div> */}
           </div>
         </div>
       </main>
