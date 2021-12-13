@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { Range } from 'rc-slider'
+import * as clustering from 'density-clustering'
 import * as CanvasIO from '../lib/canvasIO'
 import { ApplyGrayscaleFilter, ApplySegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
 import { LoaderRings } from '../components/SvgComponents'
@@ -82,13 +83,24 @@ export default function Home() {
     }
   }, [shouldProcessGrayscale, shouldProcessThreshold, threshold, shouldProcessKMeans, k, shouldAutoUpdate])
 
-  
-
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if(e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
     }
   }
+
+  useEffect(() => {
+    var dataset = [
+        [1,1,0],[0,1,0],[1,0,0],
+        [10,10,0],[10,13,0],[13,13,0],
+        [54,54,0],[55,55,0],[89,89,0],[57,55,0]
+    ];
+    
+    var dbscan = new clustering.DBSCAN();
+    // parameters: 5 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
+    var clusters = dbscan.run(dataset, 5, 2);
+    console.log(clusters, dbscan.noise);
+  },[])
 
   return (
     <div>
@@ -99,7 +111,7 @@ export default function Home() {
       </Head>
 
       <main className="px-2">
-        <div className="container-sm">
+        <div className="container-lg">
           {/* <button className="btn btn-primary" onClick={runFilters}>Test</button> */}
           <div className="d-flex flex-column flex-sm-row g-2">
             {/* Source image */}
@@ -151,10 +163,10 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container-sm py-2">
+        <div className="container-lg py-2">
           <div className="Box">
             <div className="Box-header">
-              <div className="d-flex g-5">
+              <div className="d-flex flex-wrap g-5">
                 <strong>Processing options</strong>
                 <label>
                   <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldAutoUpdate} onChange={(e) => setShouldAutoUpdate(e.target.checked)} />
@@ -226,6 +238,35 @@ export default function Home() {
                   <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
                 </label>
                </div>
+              </li>
+              <li className="Box-row">
+                <div className="d-flex flex-wrap g-5">
+                  <label>
+                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
+                    Segmentation with <abbr title="Density Based Spatial Clustering of Applications with Noise">DBSCAN</abbr>
+                  </label>
+                  <label>
+                    <details>
+                      <summary>Neighorhood radius = </summary>
+                      <p>Defines how far a pixel must be from a cluster in order to be considered part of it. wait no hold up</p>
+                    </details>
+                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                  </label>
+                  <label>
+                    <details>
+                      <summary>Neighorhood minimum = </summary>
+                      <p>Hello world</p>
+                    </details>
+                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                  </label>
+                  <label>
+                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
+                    <details>
+                      <summary>Overwrite noise?</summary>
+                      <p>Hello world</p>
+                    </details>
+                  </label>
+                </div>
               </li>
               {/* <li className="Box-row">
                 Box row four

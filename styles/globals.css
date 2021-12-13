@@ -85,3 +85,17 @@ a {
 .graphData label {
   font-weight: bold;
 }
+
+.Box-row details {
+  display: inline-block;
+}
+
+.Box-row details {
+  display: inline-block;
+}
+
+.Box-row details p {
+  font-size: 12px;
+  font-weight: 400;
+  font-style: italic;
+}
