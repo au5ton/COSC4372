@@ -99,7 +99,7 @@ export default function Home() {
       </Head>
 
       <main className="px-2">
-        <div className="container-sm">
+        <div className="container-lg">
           {/* <button className="btn btn-primary" onClick={runFilters}>Test</button> */}
           <div className="d-flex flex-column flex-sm-row g-2">
             {/* Source image */}
@@ -151,10 +151,10 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="container-sm py-2">
+        <div className="container-lg py-2">
           <div className="Box">
             <div className="Box-header">
-              <div className="d-flex g-5">
+              <div className="d-flex flex-wrap g-5">
                 <strong>Processing options</strong>
                 <label>
                   <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldAutoUpdate} onChange={(e) => setShouldAutoUpdate(e.target.checked)} />
