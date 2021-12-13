@@ -216,7 +216,7 @@ export default function Home() {
                 </div>
               </li>
               <li className="Box-row">
-               <div className="d-flex g-5">
+               <div className="d-flex flex-wrap g-5">
                 <label>
                   <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
                   Segmentation with K-means Clustering
