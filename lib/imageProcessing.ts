@@ -1,5 +1,7 @@
 import cv from '@techstark/opencv-js'
 import { reshape } from 'mathjs'
+import * as clustering from 'density-clustering'
+import seedColor from 'seed-color'
 import * as CanvasIO from '../lib/canvasIO'
 import kmeans from './kmeans'
 
@@ -85,18 +87,18 @@ export function ApplyThreshold(canvas: HTMLCanvasElement, threshold: { one: numb
   }
 }
 
-export function ApplySegmentation(canvas: HTMLCanvasElement, k: number) {
+export function ApplyKMeansSegmentation(canvas: HTMLCanvasElement, k: number) {
   // Read in the image
   let image = cv.imread(canvas)
 
   // Change color to RGB (from RGBA, the canvas default)
   cv.cvtColor(image, image, cv.COLOR_RGBA2RGB)
-  //console.log('image.data',image.data)
   
   // Reshaping the image into a 2D array of pixels and 3 color values (RGB)
   const pixel_vals = reshape(Array.from(image.data as Uint8Array).map(e => Number(e)), [-1,3])
 
   // calculate kmeans
+  console.log('computing k-means: timer started')
   console.time('computing k-means');
   const { centroids, labels2 } = kmeans(pixel_vals, k)
 
@@ -115,6 +117,79 @@ export function ApplySegmentation(canvas: HTMLCanvasElement, k: number) {
   };
 
   console.timeEnd('computing k-means');
+
+  // Write ImageData back to canvas
+  CanvasIO.writeImageDataIntoCanvas(imageData, canvas);
+}
+
+export function ApplyDBSCANSegmentation(canvas: HTMLCanvasElement, neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean) {
+  // Read in the image
+  let image = cv.imread(canvas)
+  //console.log('before',image.data)
+
+  // Change color to RGB (from RGBA, the canvas default)
+  cv.cvtColor(image, image, cv.COLOR_RGBA2RGB)
+  
+  // Reshaping the image into a 2D array of pixels and 3 color values (RGB)
+  const pixel_vals = (reshape(Array.from(image.data as Uint8Array).map(e => Number(e)), [-1,3])) as any as number[][];
+
+  // calculate DBSCAN
+  console.log('computing dbscan: timer started')
+  console.time('computing dbscan');
+  const dbscan = new clustering.DBSCAN();
+  //const dbscan = new clustering.KMEANS();
+  const clusters = dbscan.run(pixel_vals, 50000, 600);
+  //const clusters = dbscan.run(pixel_vals, 3);
+  const noise = dbscan.noise;
+  //console.log('clusters', clusters)
+  console.timeLog('computing dbscan', 'clustering finished');
+  /*
+    RESULT:
+    [
+      [0,1,2],
+      [3,4,5],
+      [6,7,9],
+      [8]
+    ]
+
+    NOISE: [ 8 ]
+  */
+  
+  // iterate over clusters
+  for(let c = 0; c < clusters.length; c++) {
+    // iterate over pixel indexes within cluster
+    for(let i = 0; i < clusters[c].length; i++) {
+      // overwrite the color at that pixel with a color that is shared with every pixel in the cluster
+      // TODO: maybe adjust coloring algorithm
+      pixel_vals[clusters[c][i]] = seedColor(`${c}`).rgb;
+    }
+  }
+
+  console.log()
+
+  if(overwriteNoise) {
+    // overwrite noise with black
+    for(let i = 0; i < noise.length; i++) {
+      pixel_vals[i] = [0, 0, 0];
+    }
+  }
+
+  // Use labels to compute ImageData
+  const imageData: ImageData = {
+    // convert [[R,G,B], ...] into [R,G,B,A, R,G,B,A, ...
+    data: new Uint8ClampedArray(pixel_vals
+    .map(rgb => ([
+      rgb[0],
+      rgb[1],
+      rgb[2],
+      255
+    ]))
+    .flat()),
+    width: image.cols,
+    height: image.rows,
+  };
+  console.timeEnd('computing dbscan');
+  //console.log('after',imageData)
 
   // Write ImageData back to canvas
   CanvasIO.writeImageDataIntoCanvas(imageData, canvas);

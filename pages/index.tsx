@@ -1,9 +1,8 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { Range } from 'rc-slider'
-import * as clustering from 'density-clustering'
 import * as CanvasIO from '../lib/canvasIO'
-import { ApplyGrayscaleFilter, ApplySegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
+import { ApplyDBSCANSegmentation, ApplyGrayscaleFilter, ApplyKMeansSegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
 import { LoaderRings } from '../components/SvgComponents'
 
 import 'rc-slider/assets/index.css'
@@ -21,11 +20,17 @@ export default function Home() {
 
   // Processing
   const [optionsDisabled, setOptionsDisabled] = useState(true)
+  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(true);
   const [shouldProcessGrayscale, setShouldProcessGrayscale] = useState(true);
   const [shouldProcessThreshold, setShouldProcessThreshold] = useState(false);
   const [shouldProcessKMeans, setShouldProcessKMeans] = useState(false);
   const [k, setK] = useState<number>(3);
-  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(true);
+  const [shouldProcessDBSCAN, setShouldProcessDBSCAN] = useState(false);
+  // neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean
+  // default values based on: https://experiencor.github.io/segmentation.html
+  const [neighborhoodRadius, setNeighborhoodRadius] = useState<number>(5);
+  const [neighborhoodMinimum, setNeighorhoodMinimum] = useState<number>(2);
+  const [overwriteNoise, setOverwriteNoise] = useState(false);
   
 
   const runFilters = () => {
@@ -36,12 +41,13 @@ export default function Home() {
     
       // Always generate histogram
       GenerateAndApplyHistogram(CanvasIO.getImageDataFromCanvas(outputCanvasRef.current)!, histogramCanvasRef.current)
-
-      // Apply filters
-      if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
-      if(shouldProcessThreshold) ApplyThreshold(output, threshold);
-      try {
-        if(shouldProcessKMeans) ApplySegmentation(output, k);
+      
+        try {
+        // Apply filters
+        if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
+        if(shouldProcessThreshold) ApplyThreshold(output, threshold);
+        if(shouldProcessKMeans) ApplyKMeansSegmentation(output, k);
+        if(shouldProcessDBSCAN) ApplyDBSCANSegmentation(output, neighborhoodRadius, neighborhoodMinimum, overwriteNoise);
       }
       catch(err) {
         console.error(err);
@@ -88,19 +94,6 @@ export default function Home() {
       setFile(e.target.files[0]);
     }
   }
-
-  useEffect(() => {
-    var dataset = [
-        [1,1,0],[0,1,0],[1,0,0],
-        [10,10,0],[10,13,0],[13,13,0],
-        [54,54,0],[55,55,0],[89,89,0],[57,55,0]
-    ];
-    
-    var dbscan = new clustering.DBSCAN();
-    // parameters: 5 - neighborhood radius, 2 - number of points in neighborhood to form a cluster
-    var clusters = dbscan.run(dataset, 5, 2);
-    console.log(clusters, dbscan.noise);
-  },[])
 
   return (
     <div>
@@ -242,25 +235,25 @@ export default function Home() {
               <li className="Box-row">
                 <div className="d-flex flex-wrap g-5">
                   <label>
-                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
+                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessDBSCAN} onChange={(e) => setShouldProcessDBSCAN(e.target.checked)} />
                     Segmentation with <abbr title="Density Based Spatial Clustering of Applications with Noise">DBSCAN</abbr>
                   </label>
                   <label>
                     <details>
                       <summary>Neighorhood radius = </summary>
-                      <p>Defines how far a pixel must be from a cluster in order to be considered part of it. wait no hold up</p>
+                      <p>test</p>
                     </details>
-                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={neighborhoodRadius} onChange={(e) => setNeighborhoodRadius(parseInt(e.target.value))} />
                   </label>
                   <label>
                     <details>
                       <summary>Neighorhood minimum = </summary>
                       <p>Hello world</p>
                     </details>
-                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
+                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={neighborhoodMinimum} onChange={(e) => setNeighorhoodMinimum(parseInt(e.target.value))} />
                   </label>
                   <label>
-                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
+                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={overwriteNoise} onChange={(e) => setOverwriteNoise(e.target.checked)} />
                     <details>
                       <summary>Overwrite noise?</summary>
                       <p>Hello world</p>
