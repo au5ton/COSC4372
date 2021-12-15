@@ -1,6 +1,6 @@
 import cv from '@techstark/opencv-js'
 import { reshape } from 'mathjs'
-import * as clustering from 'density-clustering'
+//import * as clustering from 'density-clustering'
 import seedColor from 'seed-color'
 import * as CanvasIO from '../lib/canvasIO'
 import kmeans from './kmeans'
@@ -122,75 +122,45 @@ export function ApplyKMeansSegmentation(canvas: HTMLCanvasElement, k: number) {
   CanvasIO.writeImageDataIntoCanvas(imageData, canvas);
 }
 
-export function ApplyDBSCANSegmentation(canvas: HTMLCanvasElement, neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean) {
-  // Read in the image
-  let image = cv.imread(canvas)
-  //console.log('before',image.data)
+export function ApplyDBSCANSegmentation(inputFile: File, outputCanvas: HTMLCanvasElement, neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean): Promise<void> {
+  console.time('doing dbscan')
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', inputFile);
+    // upload image for processing
+    const SERVER = 'http://67.205.158.243:5000'
+    const outputImageUrl = `${SERVER}/uploads/${inputFile.name}`
+    fetch(`${SERVER}/dbscan`, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      // once done, download image
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = outputImageUrl;
+      img.onload = function() {
+        // Resize <canvas> to fit the original resolution of the image
+        // We also account for the screens with a high pixel density (high-end laptops and smartphones)
+        // Scale the canvas by window.devicePixelRatio
+        outputCanvas.width = img.naturalWidth * window.devicePixelRatio;
+        outputCanvas.height = img.naturalHeight * window.devicePixelRatio;
 
-  // Change color to RGB (from RGBA, the canvas default)
-  cv.cvtColor(image, image, cv.COLOR_RGBA2RGB)
-  
-  // Reshaping the image into a 2D array of pixels and 3 color values (RGB)
-  const pixel_vals = (reshape(Array.from(image.data as Uint8Array).map(e => Number(e)), [-1,3])) as any as number[][];
+        // use css to bring it back to regular size
+        // (this is also capped with max-width: 100% in the stylesheet)
+        outputCanvas.style.width = `${img.naturalWidth}px`;
+        outputCanvas.style.height = `${img.naturalHeight}px`;
 
-  // calculate DBSCAN
-  console.log('computing dbscan: timer started')
-  console.time('computing dbscan');
-  const dbscan = new clustering.DBSCAN();
-  //const dbscan = new clustering.KMEANS();
-  const clusters = dbscan.run(pixel_vals, 50000, 600);
-  //const clusters = dbscan.run(pixel_vals, 3);
-  const noise = dbscan.noise;
-  //console.log('clusters', clusters)
-  console.timeLog('computing dbscan', 'clustering finished');
-  /*
-    RESULT:
-    [
-      [0,1,2],
-      [3,4,5],
-      [6,7,9],
-      [8]
-    ]
+        
+        // Use a reference to the canvas below and get a 2D context from the canvas
+        const context = outputCanvas.getContext('2d');
+        // set the scale of the context
+        context?.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-    NOISE: [ 8 ]
-  */
-  
-  // iterate over clusters
-  for(let c = 0; c < clusters.length; c++) {
-    // iterate over pixel indexes within cluster
-    for(let i = 0; i < clusters[c].length; i++) {
-      // overwrite the color at that pixel with a color that is shared with every pixel in the cluster
-      // TODO: maybe adjust coloring algorithm
-      pixel_vals[clusters[c][i]] = seedColor(`${c}`).rgb;
-    }
-  }
-
-  console.log()
-
-  if(overwriteNoise) {
-    // overwrite noise with black
-    for(let i = 0; i < noise.length; i++) {
-      pixel_vals[i] = [0, 0, 0];
-    }
-  }
-
-  // Use labels to compute ImageData
-  const imageData: ImageData = {
-    // convert [[R,G,B], ...] into [R,G,B,A, R,G,B,A, ...
-    data: new Uint8ClampedArray(pixel_vals
-    .map(rgb => ([
-      rgb[0],
-      rgb[1],
-      rgb[2],
-      255
-    ]))
-    .flat()),
-    width: image.cols,
-    height: image.rows,
-  };
-  console.timeEnd('computing dbscan');
-  //console.log('after',imageData)
-
-  // Write ImageData back to canvas
-  CanvasIO.writeImageDataIntoCanvas(imageData, canvas);
+        // Draw the unmodified image to both <canvas>es
+        context?.drawImage(img, 0, 0);
+        console.timeEnd('doing dbscan')
+        resolve();
+      }
+    });
+  });
 }

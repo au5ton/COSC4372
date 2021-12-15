@@ -34,7 +34,8 @@ export default function Home() {
   
 
   const runFilters = () => {
-    if(inputCanvasRef.current && outputCanvasRef.current && histogramCanvasRef.current) {
+    if(inputCanvasRef.current && outputCanvasRef.current && histogramCanvasRef.current && file) {
+      setLoading(true);
       // restore original image into output canvas
       CanvasIO.copyCanvasDataToAnotherCanvas(inputCanvasRef.current, outputCanvasRef.current);
       const output = outputCanvasRef.current
@@ -42,15 +43,25 @@ export default function Home() {
       // Always generate histogram
       GenerateAndApplyHistogram(CanvasIO.getImageDataFromCanvas(outputCanvasRef.current)!, histogramCanvasRef.current)
       
-        try {
+      try {
         // Apply filters
         if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
         if(shouldProcessThreshold) ApplyThreshold(output, threshold);
         if(shouldProcessKMeans) ApplyKMeansSegmentation(output, k);
-        if(shouldProcessDBSCAN) ApplyDBSCANSegmentation(output, neighborhoodRadius, neighborhoodMinimum, overwriteNoise);
+        if(shouldProcessDBSCAN) {
+          (async () => {
+            console.log('LOADING')
+            setLoading(true);
+            await ApplyDBSCANSegmentation(file, output, neighborhoodRadius, neighborhoodMinimum, overwriteNoise);
+            setLoading(false);
+          })();
+        }
       }
       catch(err) {
         console.error(err);
+      }
+      if(!shouldProcessDBSCAN) {
+        setLoading(false);
       }
     }
   }
@@ -75,10 +86,8 @@ export default function Home() {
 
   const handleManualUpdate = () => {
     if(file && inputCanvasRef.current && outputCanvasRef.current) {
-      setLoading(true);
       runFilters()
       console.log('filters done')
-      setLoading(false);
     }
   }
 
