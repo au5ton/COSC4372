@@ -233,7 +233,7 @@ export default function Home() {
                <div className="d-flex g-5">
                 <label>
                   <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
-                  Segmentation with K-means Clustering
+                  Segmentation with K-means Clustering <span style={{ color: 'red' }}>(SLOW)</span>
                 </label>
                 <label>
                   K = 
@@ -245,7 +245,7 @@ export default function Home() {
                 <div className="d-flex flex-wrap g-5">
                   <label>
                     <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessDBSCAN} onChange={(e) => setShouldProcessDBSCAN(e.target.checked)} />
-                    Segmentation with <abbr title="Density Based Spatial Clustering of Applications with Noise">DBSCAN</abbr>
+                    Segmentation with <abbr title="Density Based Spatial Clustering of Applications with Noise">DBSCAN</abbr> <span style={{ color: 'red' }}>(SLOW)</span>
                   </label>
                   <label>
                     <details>
