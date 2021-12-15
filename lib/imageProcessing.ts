@@ -1,5 +1,7 @@
 import cv from '@techstark/opencv-js'
 import { reshape } from 'mathjs'
+//import * as clustering from 'density-clustering'
+import seedColor from 'seed-color'
 import * as CanvasIO from '../lib/canvasIO'
 import kmeans from './kmeans'
 
@@ -85,18 +87,18 @@ export function ApplyThreshold(canvas: HTMLCanvasElement, threshold: { one: numb
   }
 }
 
-export function ApplySegmentation(canvas: HTMLCanvasElement, k: number) {
+export function ApplyKMeansSegmentation(canvas: HTMLCanvasElement, k: number) {
   // Read in the image
   let image = cv.imread(canvas)
 
   // Change color to RGB (from RGBA, the canvas default)
   cv.cvtColor(image, image, cv.COLOR_RGBA2RGB)
-  //console.log('image.data',image.data)
   
   // Reshaping the image into a 2D array of pixels and 3 color values (RGB)
   const pixel_vals = reshape(Array.from(image.data as Uint8Array).map(e => Number(e)), [-1,3])
 
   // calculate kmeans
+  console.log('computing k-means: timer started')
   console.time('computing k-means');
   const { centroids, labels2 } = kmeans(pixel_vals, k)
 
@@ -118,4 +120,49 @@ export function ApplySegmentation(canvas: HTMLCanvasElement, k: number) {
 
   // Write ImageData back to canvas
   CanvasIO.writeImageDataIntoCanvas(imageData, canvas);
+}
+
+export function ApplyDBSCANSegmentation(inputFile: File, outputCanvas: HTMLCanvasElement, neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean): Promise<void> {
+  console.time('doing dbscan')
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('file', inputFile);
+    formData.append('eps', `${neighborhoodRadius}`);
+    formData.append('min_samples', `${minPointsPerCluster}`);
+    // upload image for processing
+    const SERVER = 'https://phobos.soot.dev/fuckthisproject'
+    const outputImageUrl = `${SERVER}/uploads/${inputFile.name}`
+    fetch(`${SERVER}/dbscan`, {
+      method: 'POST',
+      body: formData
+    }).then(() => {
+      // once done, download image
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = outputImageUrl;
+      img.onload = function() {
+        // Resize <canvas> to fit the original resolution of the image
+        // We also account for the screens with a high pixel density (high-end laptops and smartphones)
+        // Scale the canvas by window.devicePixelRatio
+        outputCanvas.width = img.naturalWidth * window.devicePixelRatio;
+        outputCanvas.height = img.naturalHeight * window.devicePixelRatio;
+
+        // use css to bring it back to regular size
+        // (this is also capped with max-width: 100% in the stylesheet)
+        outputCanvas.style.width = `${img.naturalWidth}px`;
+        outputCanvas.style.height = `${img.naturalHeight}px`;
+
+        
+        // Use a reference to the canvas below and get a 2D context from the canvas
+        const context = outputCanvas.getContext('2d');
+        // set the scale of the context
+        context?.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+        // Draw the unmodified image to both <canvas>es
+        context?.drawImage(img, 0, 0);
+        console.timeEnd('doing dbscan')
+        resolve();
+      }
+    });
+  });
 }

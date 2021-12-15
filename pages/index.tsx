@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 import { Range } from 'rc-slider'
 import * as CanvasIO from '../lib/canvasIO'
-import { ApplyGrayscaleFilter, ApplySegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
+import { ApplyDBSCANSegmentation, ApplyGrayscaleFilter, ApplyKMeansSegmentation, ApplyThreshold, GenerateAndApplyHistogram } from '../lib/imageProcessing'
 import { LoaderRings } from '../components/SvgComponents'
 
 import 'rc-slider/assets/index.css'
@@ -20,30 +20,48 @@ export default function Home() {
 
   // Processing
   const [optionsDisabled, setOptionsDisabled] = useState(true)
+  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(false);
   const [shouldProcessGrayscale, setShouldProcessGrayscale] = useState(true);
   const [shouldProcessThreshold, setShouldProcessThreshold] = useState(false);
   const [shouldProcessKMeans, setShouldProcessKMeans] = useState(false);
   const [k, setK] = useState<number>(3);
-  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(true);
+  const [shouldProcessDBSCAN, setShouldProcessDBSCAN] = useState(false);
+  // neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean
+  // default values based on: https://experiencor.github.io/segmentation.html
+  const [neighborhoodRadius, setNeighborhoodRadius] = useState<number>(0.3);
+  const [neighborhoodMinimum, setNeighorhoodMinimum] = useState<number>(100);
+  const [overwriteNoise, setOverwriteNoise] = useState(false);
   
 
   const runFilters = () => {
-    if(inputCanvasRef.current && outputCanvasRef.current && histogramCanvasRef.current) {
+    if(inputCanvasRef.current && outputCanvasRef.current && histogramCanvasRef.current && file) {
+      setLoading(true);
       // restore original image into output canvas
       CanvasIO.copyCanvasDataToAnotherCanvas(inputCanvasRef.current, outputCanvasRef.current);
       const output = outputCanvasRef.current
     
       // Always generate histogram
       GenerateAndApplyHistogram(CanvasIO.getImageDataFromCanvas(outputCanvasRef.current)!, histogramCanvasRef.current)
-
-      // Apply filters
-      if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
-      if(shouldProcessThreshold) ApplyThreshold(output, threshold);
+      
       try {
-        if(shouldProcessKMeans) ApplySegmentation(output, k);
+        // Apply filters
+        if(shouldProcessGrayscale) ApplyGrayscaleFilter(output);
+        if(shouldProcessThreshold) ApplyThreshold(output, threshold);
+        if(shouldProcessKMeans) ApplyKMeansSegmentation(output, k);
+        if(shouldProcessDBSCAN) {
+          (async () => {
+            console.log('LOADING')
+            setLoading(true);
+            await ApplyDBSCANSegmentation(file, output, neighborhoodRadius, neighborhoodMinimum, overwriteNoise);
+            setLoading(false);
+          })();
+        }
       }
       catch(err) {
         console.error(err);
+      }
+      if(!shouldProcessDBSCAN) {
+        setLoading(false);
       }
     }
   }
@@ -68,10 +86,8 @@ export default function Home() {
 
   const handleManualUpdate = () => {
     if(file && inputCanvasRef.current && outputCanvasRef.current) {
-      setLoading(true);
       runFilters()
       console.log('filters done')
-      setLoading(false);
     }
   }
 
@@ -81,8 +97,6 @@ export default function Home() {
       handleManualUpdate();
     }
   }, [shouldProcessGrayscale, shouldProcessThreshold, threshold, shouldProcessKMeans, k, shouldAutoUpdate])
-
-  
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if(e.target.files && e.target.files.length > 0) {
@@ -219,13 +233,35 @@ export default function Home() {
                <div className="d-flex flex-wrap g-5">
                 <label>
                   <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessKMeans} onChange={(e) => setShouldProcessKMeans(e.target.checked)} />
-                  Segmentation with K-means Clustering
+                  Segmentation with K-means Clustering <span style={{ color: 'red' }}>(SLOW)</span>
                 </label>
                 <label>
                   K = 
                   <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
                 </label>
                </div>
+              </li>
+              <li className="Box-row">
+                <div className="d-flex flex-wrap g-5">
+                  <label>
+                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={shouldProcessDBSCAN} onChange={(e) => setShouldProcessDBSCAN(e.target.checked)} />
+                    Segmentation with <abbr title="Density Based Spatial Clustering of Applications with Noise">DBSCAN</abbr> <span style={{ color: 'red' }}>(SLOW)</span>
+                  </label>
+                  <label>
+                    <details>
+                      <summary>EPS = </summary>
+                      <p>The maximum distance between two samples for one to be considered as in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. This is the most important DBSCAN parameter to choose appropriately for your data set and distance function.</p>
+                    </details>
+                    <input className="form-control input-sm ml-2" type="number" step="0.01" disabled={optionsDisabled} value={neighborhoodRadius} onChange={(e) => setNeighborhoodRadius(parseFloat(e.target.value))} />
+                  </label>
+                  <label>
+                    <details>
+                      <summary>Minimum Samples = </summary>
+                      <p>The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.</p>
+                    </details>
+                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={neighborhoodMinimum} onChange={(e) => setNeighorhoodMinimum(parseInt(e.target.value))} />
+                  </label>
+                </div>
               </li>
               {/* <li className="Box-row">
                 Box row four
