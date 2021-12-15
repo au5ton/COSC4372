@@ -127,8 +127,10 @@ export function ApplyDBSCANSegmentation(inputFile: File, outputCanvas: HTMLCanva
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append('file', inputFile);
+    formData.append('eps', `${neighborhoodRadius}`);
+    formData.append('min_samples', `${minPointsPerCluster}`);
     // upload image for processing
-    const SERVER = 'http://67.205.158.243:5000'
+    const SERVER = 'https://phobos.soot.dev/fuckthisproject'
     const outputImageUrl = `${SERVER}/uploads/${inputFile.name}`
     fetch(`${SERVER}/dbscan`, {
       method: 'POST',

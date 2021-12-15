@@ -28,8 +28,8 @@ export default function Home() {
   const [shouldProcessDBSCAN, setShouldProcessDBSCAN] = useState(false);
   // neighborhoodRadius: number, minPointsPerCluster: number, overwriteNoise: boolean
   // default values based on: https://experiencor.github.io/segmentation.html
-  const [neighborhoodRadius, setNeighborhoodRadius] = useState<number>(5);
-  const [neighborhoodMinimum, setNeighorhoodMinimum] = useState<number>(2);
+  const [neighborhoodRadius, setNeighborhoodRadius] = useState<number>(0.3);
+  const [neighborhoodMinimum, setNeighorhoodMinimum] = useState<number>(100);
   const [overwriteNoise, setOverwriteNoise] = useState(false);
   
 
@@ -249,24 +249,17 @@ export default function Home() {
                   </label>
                   <label>
                     <details>
-                      <summary>Neighorhood radius = </summary>
-                      <p>test</p>
+                      <summary>EPS = </summary>
+                      <p>The maximum distance between two samples for one to be considered as in the neighborhood of the other. This is not a maximum bound on the distances of points within a cluster. This is the most important DBSCAN parameter to choose appropriately for your data set and distance function.</p>
                     </details>
-                    <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={neighborhoodRadius} onChange={(e) => setNeighborhoodRadius(parseInt(e.target.value))} />
+                    <input className="form-control input-sm ml-2" type="number" step="0.01" disabled={optionsDisabled} value={neighborhoodRadius} onChange={(e) => setNeighborhoodRadius(parseFloat(e.target.value))} />
                   </label>
                   <label>
                     <details>
-                      <summary>Neighorhood minimum = </summary>
-                      <p>Hello world</p>
+                      <summary>Minimum Samples = </summary>
+                      <p>The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.</p>
                     </details>
                     <input className="form-control input-sm ml-2" type="number" disabled={optionsDisabled} value={neighborhoodMinimum} onChange={(e) => setNeighorhoodMinimum(parseInt(e.target.value))} />
-                  </label>
-                  <label>
-                    <input className="mr-2" type="checkbox" disabled={optionsDisabled} checked={overwriteNoise} onChange={(e) => setOverwriteNoise(e.target.checked)} />
-                    <details>
-                      <summary>Overwrite noise?</summary>
-                      <p>Hello world</p>
-                    </details>
                   </label>
                 </div>
               </li>
