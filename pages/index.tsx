@@ -20,7 +20,7 @@ export default function Home() {
 
   // Processing
   const [optionsDisabled, setOptionsDisabled] = useState(true)
-  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(true);
+  const [shouldAutoUpdate, setShouldAutoUpdate] = useState(false);
   const [shouldProcessGrayscale, setShouldProcessGrayscale] = useState(true);
   const [shouldProcessThreshold, setShouldProcessThreshold] = useState(false);
   const [shouldProcessKMeans, setShouldProcessKMeans] = useState(false);
